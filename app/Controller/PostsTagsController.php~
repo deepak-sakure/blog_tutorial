@@ -1,0 +1,57 @@
+<?php
+class PostsTagsController extends AppController {
+    public $helpers = array('Html', 'Form', 'Session');
+    public $components = array('Session');
+
+    public function index() {
+        $this->set('posts_tags', $this->PostsTag->find('all'));        
+    }
+
+    public function view($id = null) {
+        $this->PostTag->id = $id;
+        $this->set('posts_tag', $this->PostTag->read());
+    } 	
+
+    public function add() {
+//var_dump($this->PostsTag);exit;
+print_r($this->PostsTag);exit;
+        $this->set('posts', $this->PostsTag->Post->find('list'));
+        //$this->set('posts', $this->PostsTag->Tag->find('all'));
+
+       
+        if ($this->request->is('post')) {
+            if ($this->PostTag->save($this->request->data)) {
+                $this->Session->setFlash('Your post - tag has been saved.');
+                $this->redirect(array('action' => 'index'));
+            } else { //debug($this->Post->validationErrors);
+                $this->Session->setFlash('Unable to add your post - tag.');
+            }
+        }
+    }
+
+    public function edit($id = null) {
+        $this->PostTag->id = $id;
+        if ($this->request->is('get')) {
+            $this->request->data = $this->PostTag->read();
+        } else {
+            if ($this->PostTag->save($this->request->data)) {
+                $this->Session->setFlash('Your post - tag has been updated.');
+                $this->redirect(array('action' => 'index'));
+            } else {
+                $this->Session->setFlash('Unable to update your post - tag.');
+            }
+        }
+    }
+
+    public function delete($id) {
+        if ($this->request->is('get')){
+            throw new MethodNotAllowedException();
+        }
+        if ($this->PostTag->delete($id)) {
+            $this->Session->setFlash('The post - tag with id: '.$id.' has been deleted');
+            $this->redirect(array('action' => 'index'));
+        } 
+    }
+
+}
+?>

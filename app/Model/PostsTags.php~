@@ -1,0 +1,29 @@
+<?php
+class PostsTag extends AppModel {
+     
+    public $name = 'PostsTag';
+   public $belongsTo = array(
+        'Post' => array(
+            'className'    => 'Post',
+            'foreignKey'   => 'post_id'
+        )
+    );
+
+    public $belongsTo = array(
+        'Tag' => array(
+            'className' => 'Tag',
+             'foreignKey'   => 'tag_id'
+        )
+    );
+
+  
+    public $validate = array(
+        'post_id' => array(
+            'rule' => 'notEmpty'
+        ),
+        'tag_id' => array(
+            'rule' => 'notEmpty'
+        )
+    );	
+}
+?>

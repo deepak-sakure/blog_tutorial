@@ -1,0 +1,16 @@
+<?php //print_r($this->request->data); 
+      $post_id = $this->request->data['Comment']['post_id'];
+?>
+<h1>Edit Comment</h1>
+<?php
+    echo $this->Form->create('Comment', array('action' => 'edit'));
+    //echo $this->Form->input('post_id1', array('type'=>'select', 'options'=>$posts, 'default'=> $post_id, 'label'=>'Post Title'));
+    echo $this->Form->input('Post.title', array('type'=>'text', 'label'=>'Post Title', 'readonly' => true));
+    echo $this->Form->input('name', array('label' => 'Name'));
+    echo $this->Form->input('email', array('label' => 'Email'));
+    echo $this->Form->input('url', array('label' => 'Url'));
+    echo $this->Form->input('Comment.body', array('rows' => '3', 'label' => 'Comments Body'));
+    echo $this->Form->input('id', array('type' => 'hidden'));
+    echo $this->Form->input('post_id', array('type' => 'hidden'));
+    echo $this->Form->end('Save Comment');
+?>

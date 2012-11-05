@@ -1,0 +1,145 @@
+<?php
+
+/**
+ * File used as tag behavior
+ *
+ * Contains code needed mainly for tag behavior
+ *
+ * @author Amit Badkas <amit@sanisoft.com>
+ * @version 1.0
+ * @package CheeseCake2
+ */
+
+/**
+ * Tag behavior
+ *
+ * @author Amit Badkas <amit@sanisoft.com>
+ * @version 1.0
+ * @package CheeseCake2
+ */
+class TagBehavior extends ModelBehavior
+{
+	/**
+	 * Method called automatically by model's constructor
+	 *
+	 * @access public
+	 * @param object $model Object of model
+	 * @param array $settings Settings for behavior
+	 */
+	function setup(&$model, $settings = array())
+	{ 
+		// Initialize behavior's default settings
+		$default = array
+		(
+			'separator' => ','
+			, 'tag_label' => 'tag'
+			, 'table_label' => 'tags'
+		);
+
+		// If behavior's settings not set for given model then use default
+		if (!isset($this->settings[$model->name]))
+		{
+			$this->settings[$model->name] = $default;
+		}
+
+		// Merge behavior's default settings and model's settings
+		//$this->settings[$model->name] = am($this->settings[$model->name], ife(is_array($settings), $settings, array()));
+        $this->settings[$model->name] = array_merge($this->settings[$model->name],$settings); 
+	}
+
+	/**
+	 * Method called automatically by model's save
+	 *
+	 * @access public
+	 * @param object $model Object of model
+	 * @return boolean Return method's status
+	 */
+	function beforeSave(&$model)
+	{
+		// Create new tag model's object
+		$Tag = ClassRegistry::init('Tag');
+
+		// If tag model not contain tag field then invalidate tag field and return false
+		if (!$Tag->hasField($this->settings[$model->name]['tag_label']))
+		{
+			$model->invalidate($this->settings[$model->name]['table_label'], __('The tag model does not contain desired field to store tag.', true));
+			return false;
+		}
+
+		// Parse tag list in data
+		$tagList = $this->_parseTag($model->data[$model->name][$this->settings[$model->name]['table_label']], $this->settings[$model->name]['separator']);
+
+		// Initialize variable
+		$tags = array();
+
+		// Loop through list of tags
+		foreach ($tagList as $tag)
+		{
+			// If tag is already added in database table then get its id and store it in array
+			if ($tagId = $Tag->field('Tag.id', 'Tag.'.$this->settings[$model->name]['tag_label'].' = "'.$tag.'"'))
+			{
+				$tags[] = $tagId;
+			}
+			else
+			{
+				// Create new tag record
+				$Tag->create();
+
+				// Save tag in database table
+				$Tag->save(array($this->settings[$model->name]['tag_label'] => $tag));
+
+				// Store newly added tag's id in array
+				$tags[] = sprintf($Tag->getLastInsertID());
+			}
+
+			// Unset tag id variable
+			unset($tagId);
+		}
+
+		// Store tags list then unset not needed data and return true
+		$model->data['Tag']['Tag'] = $tags;
+		unset($model->data[$model->name][$this->settings[$model->name]['table_label']]);
+	    return true;
+	}
+
+	/**
+	 * Method used to parse tags
+	 *
+	 * @access private
+	 * @param string $string Tags
+	 * @param string $separator Separator for tags
+	 * @return array Parsed tags
+	 */
+	function _parseTag($string, $separator)
+	{
+	   	// Make string lowercase and remove unwanted characters from it
+		$string = strtolower($string);
+		$string = preg_replace('/[^a-z0-9'.$separator.']/i', '', $string);
+		$string = preg_replace('/'.$separator.'['.$separator.']*/', $separator, $string);
+
+		// Split string
+		$string_array = preg_split('/'.$separator.'/', $string);
+
+		// Initialize variable
+		$return_array = array();
+
+		// Loop through array
+		foreach($string_array as $t)
+		{
+			// Trim tag
+			$t = trim($t);
+
+			// If tag is not empty then store it in array
+			if (strlen($t) > 0)
+			{
+				$return_array[] = $t;
+			}
+		}
+
+		// Sort tag list
+		sort($return_array);
+
+		// Return tag list
+		return $return_array;
+	}
+}
